@@ -1,0 +1,96 @@
+{
+  "projectType": "saas",
+  "projectName": "Mais Hábito",
+  "projectDescription": "A gamified personal productivity web app that helps users build consistent habits through challenges, daily tasks, XP points, and streak tracking.",
+  "theme": "almond",
+  "primaryColor": "#fbc926",
+  "lightColor": "#8c73fa",
+  "darkColor": null,
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": ["introduction", "getting-started/installation", "getting-started/configuration"]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/dashboard",
+              "features/challenges",
+              "features/tasks",
+              "features/gamification"
+            ]
+          },
+          {
+            "group": "Architecture",
+            "pages": [
+              "architecture/overview",
+              "architecture/state-management",
+              "architecture/theming"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Authentication",
+            "pages": ["api/auth/login", "api/auth/signup"]
+          },
+          {
+            "group": "Challenges",
+            "pages": [
+              "api/challenges/templates",
+              "api/challenges/user-challenges"
+            ]
+          },
+          {
+            "group": "Tasks",
+            "pages": ["api/tasks/overview", "api/tasks/completions"]
+          },
+          {
+            "group": "User",
+            "pages": ["api/user/profile"]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Gamified dashboard with XP points, streaks, and level tracking",
+    "Challenge catalog — create templates and accept multi-day challenge tracks",
+    "Daily task management with CRUD and completion tracking",
+    "Progress diary (notes) for active challenges",
+    "JWT-based authentication with automatic 401 redirect handling",
+    "Dark and light theme support via Styled Components",
+    "Zustand global state with localStorage persistence",
+    "React Hook Form + Zod schema validation for all forms",
+    "Responsive layout with mobile navigation support"
+  ],
+  "publicApiSurface": [
+    "authService.login(email, password)",
+    "authService.signup(name, email, password)",
+    "challengeService.listTemplates()",
+    "challengeService.createTemplate({ title, description, duration_days })",
+    "challengeService.deleteTemplate(id)",
+    "challengeService.acceptChallenge(templateId)",
+    "challengeService.getActiveChallenge()",
+    "challengeService.listMyChallenges()",
+    "challengeService.completeChallenge(id)",
+    "challengeService.abandonChallenge(id)",
+    "challengeService.updateNotes(id, notes)",
+    "taskService.createTask(data)",
+    "taskService.listMyTasks()",
+    "taskService.updateTask(taskId, data)",
+    "taskService.deleteTask(taskId)",
+    "taskService.completeTask(taskId, photoUrl?)",
+    "userService.getProfile()",
+    "userService.updateProfile(data)",
+    "useAuthStore — Zustand store for auth state (setAuth, logout)",
+    "useThemeStore — Zustand store for theme toggling"
+  ]
+}
