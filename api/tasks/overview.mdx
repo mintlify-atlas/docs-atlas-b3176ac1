@@ -87,7 +87,7 @@ Returns the newly created `Task` object.
 ### Code example
 
 ```typescript
-import { taskService } from '@/services/task.service';
+import { taskService } from '../../services/task.service';
 
 const task = await taskService.createTask({
   title: 'Morning run',
@@ -125,7 +125,7 @@ Returns an array of `TaskWithCount` objects.
 ### Code example
 
 ```typescript
-import { taskService } from '@/services/task.service';
+import { taskService } from '../../services/task.service';
 
 const items = await taskService.listMyTasks();
 // items: TaskWithCount[]
@@ -174,7 +174,7 @@ Returns the updated `Task` object.
 ### Code example
 
 ```typescript
-import { taskService } from '@/services/task.service';
+import { taskService } from '../../services/task.service';
 
 const updated = await taskService.updateTask(taskId, {
   points: 20,
@@ -204,7 +204,7 @@ Returns no body on success.
 ### Code example
 
 ```typescript
-import { taskService } from '@/services/task.service';
+import { taskService } from '../../services/task.service';
 
 await taskService.deleteTask(taskId);
 // resolves void on success

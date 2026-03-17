@@ -51,7 +51,7 @@ export interface TaskCompletion {
 <CodeGroup>
 
 ```typescript taskService.completeTask
-import { taskService } from '@/services/task.service';
+import { taskService } from '../../services/task.service';
 
 // Without a photo
 const completion = await taskService.completeTask(taskId);
@@ -64,7 +64,7 @@ const completion = await taskService.completeTask(taskId, 'https://cdn.example.c
 ```
 
 ```typescript raw axios
-import api from '@/services/api';
+import api from '../../services/api';
 
 const { data } = await api.post('/task-completions', {
   task_id: taskId,

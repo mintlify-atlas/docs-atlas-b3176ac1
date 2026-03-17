@@ -86,7 +86,7 @@ Returns the full profile for the currently authenticated user.
 ### Code example
 
 ```typescript
-import { userService } from '@/services/user.service';
+import { userService } from '../../services/user.service';
 
 const profile = await userService.getProfile();
 // profile: UserProfile
@@ -134,7 +134,7 @@ Returns the updated `UserProfile` object.
 <CodeGroup>
 
 ```typescript update name and picture
-import { userService } from '@/services/user.service';
+import { userService } from '../../services/user.service';
 
 const updated = await userService.updateProfile({
   name: 'Jane Doe',
@@ -144,7 +144,7 @@ const updated = await userService.updateProfile({
 ```
 
 ```typescript change password
-import { userService } from '@/services/user.service';
+import { userService } from '../../services/user.service';
 
 const updated = await userService.updateProfile({
   currentPassword: 'oldpassword',

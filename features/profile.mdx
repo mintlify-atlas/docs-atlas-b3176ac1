@@ -1,0 +1,81 @@
+---
+title: "Profile"
+description: "View and update your account details, change your password, and manage your session."
+---
+
+The Profile page (`/profile`) lets you view your gamification stats, update your account information, change your password, and log out.
+
+## Profile overview
+
+At the top of the page, your avatar displays either your profile picture (if set) or your name's first initial. Below it, your display name and email are shown at a glance.
+
+## Editing your profile
+
+<Steps>
+  <Step title="Navigate to Profile">
+    Click your avatar or the Profile link in the sidebar (or bottom nav on mobile) to open the page.
+  </Step>
+  <Step title="Update your details">
+    The **Editar Perfil** card contains three editable fields:
+
+    | Field | Description |
+    |---|---|
+    | **Nome** | Your display name (required, minimum 1 character) |
+    | **E-mail** | Your login email address |
+    | **Foto de Perfil (URL)** | Optional URL to an image used as your avatar |
+  </Step>
+  <Step title="Save">
+    Click **Salvar**. On success, a toast notification confirms the update and the sidebar/nav refresh to show your new name.
+  </Step>
+</Steps>
+
+<Note>
+  The profile form is pre-filled with your current data. Changes are validated client-side with **Zod** before being sent to the API. The profile is also cached in `useAppCache` — it updates immediately after a successful save without requiring a page reload.
+</Note>
+
+## Changing your password
+
+The **Alterar Senha** section is embedded within the same profile card.
+
+<Steps>
+  <Step title="Current password">
+    The **Senha atual** field is read-only and pre-filled from your session. It is stored temporarily in `sessionStorage` during your active session for convenience.
+  </Step>
+  <Step title="New password">
+    Enter your desired new password in the **Nova Senha** field. The password must be at least **6 characters** long.
+  </Step>
+  <Step title="Save">
+    Click **Salvar**. The password change is only sent to the API if the **Nova Senha** field is non-empty. If you leave it blank, only your profile fields (name, email, picture) are updated.
+  </Step>
+</Steps>
+
+<Warning>
+  Both the current and new password fields have visibility toggles (eye icons). The current password field is read-only — you cannot type into it manually. If your session has expired, the field will be empty and you will need to re-authenticate.
+</Warning>
+
+## Logging out
+
+At the bottom of the page, a **Sair da conta** button clears your authentication state:
+
+- Removes `token` and `user` from `localStorage`
+- Removes `_up` from `sessionStorage`
+- Resets `useAuthStore` to unauthenticated
+- Redirects you to the home page (`/`)
+
+<Tip>
+  Logging out does not clear the in-memory app cache (`useAppCache`). If you log back in as a different user, the cache will be stale until the new session's data loads. For a clean slate, the app performs fresh API fetches on each page mount after login.
+</Tip>
+
+## UpdateProfileData interface
+
+```typescript
+export interface UpdateProfileData {
+  name?: string;
+  email?: string;
+  profile_picture?: string | null;
+  currentPassword?: string; // Required when changing password
+  newPassword?: string;     // Minimum 6 characters
+}
+```
+
+See [User profile API](/api/user/profile) for the full endpoint reference.

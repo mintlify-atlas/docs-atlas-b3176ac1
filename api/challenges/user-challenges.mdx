@@ -57,7 +57,7 @@ Returns the newly created `UserChallenge` object.
 ### Code example
 
 ```typescript
-import { challengeService } from '@/services/challenge.service';
+import { challengeService } from '../../services/challenge.service';
 
 const challenge = await challengeService.acceptChallenge(templateId);
 // challenge.status === 'ACTIVE'
@@ -78,7 +78,7 @@ Returns the active `UserChallenge`, or `null` if no challenge is currently activ
 ### Code example
 
 ```typescript
-import { challengeService } from '@/services/challenge.service';
+import { challengeService } from '../../services/challenge.service';
 
 const active = await challengeService.getActiveChallenge();
 // active: UserChallenge | null
@@ -99,7 +99,7 @@ Returns an array of `UserChallenge` objects.
 ### Code example
 
 ```typescript
-import { challengeService } from '@/services/challenge.service';
+import { challengeService } from '../../services/challenge.service';
 
 const challenges = await challengeService.listMyChallenges();
 // challenges: UserChallenge[]
@@ -132,7 +132,7 @@ Marks an active challenge as completed. Transitions status from `ACTIVE` to `COM
 ### Code example
 
 ```typescript
-import { challengeService } from '@/services/challenge.service';
+import { challengeService } from '../../services/challenge.service';
 
 const { message, challenge } = await challengeService.completeChallenge(challengeId);
 // challenge.status === 'COMPLETED'
@@ -166,7 +166,7 @@ Marks an active challenge as abandoned. Transitions status from `ACTIVE` to `ABA
 ### Code example
 
 ```typescript
-import { challengeService } from '@/services/challenge.service';
+import { challengeService } from '../../services/challenge.service';
 
 const { message, challenge } = await challengeService.abandonChallenge(challengeId);
 // challenge.status === 'ABANDONED'
@@ -189,8 +189,22 @@ Replaces the diary notes for a challenge. Notes can be updated at any point rega
 ### Request body
 
 <ParamField body="notes" type="string" required>
-  The new diary notes content. Pass an empty string to clear existing notes.
+  The serialised notes content. In practice the app stores notes as a JSON-serialised array of `DailyLog` entries (see below). Pass an empty string to clear existing notes.
 </ParamField>
+
+### DailyLog structure
+
+The `notes` field on a `UserChallenge` is stored as a JSON string. When parsed, it is an array of log entries:
+
+```typescript
+interface DailyLog {
+  id: string;   // crypto.randomUUID()
+  date: string; // ISO 8601 timestamp
+  text: string; // The user's diary entry (max 500 chars)
+}
+```
+
+New entries are prepended (newest first) so the diary displays in reverse-chronological order.
 
 ### Response
 
@@ -199,11 +213,22 @@ Returns the updated `UserChallenge` object.
 ### Code example
 
 ```typescript
-import { challengeService } from '@/services/challenge.service';
+import { challengeService } from '../../services/challenge.service';
 
-const challenge = await challengeService.updateNotes(
+// DailyLog: { id: string, date: string, text: string }
+const existingLogs = challenge.notes ? JSON.parse(challenge.notes) : [];
+
+const newLog = {
+  id: crypto.randomUUID(),
+  date: new Date().toISOString(),
+  text: 'Day 5 — feeling great, kept up the habit!',
+};
+
+// Prepend new entry (newest first) and serialise
+const updatedLogs = [newLog, ...existingLogs];
+const updated = await challengeService.updateNotes(
   challengeId,
-  'Day 5 — feeling great, kept up the habit!'
+  JSON.stringify(updatedLogs)
 );
-// challenge.notes — updated notes string
+// updated.notes — JSON string containing the updated log array
 ```

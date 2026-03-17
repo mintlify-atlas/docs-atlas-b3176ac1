@@ -43,17 +43,17 @@ Authenticates an existing user with their email and password. Returns a JWT toke
 <CodeGroup>
 
 ```typescript authService.login
-import { authService } from '@/services/auth.service';
-import { useAuthStore } from '@/stores/auth.store';
+import { authService } from '../../services/auth.service';
+import { useAuthStore } from '../../store/authStore';
 
 const response = await authService.login('user@example.com', 'password123');
 
-// Persist the token and user data
-useAuthStore.getState().setAuth(response.token, response.user);
+// setAuth(user, token) — user is first, token is second
+useAuthStore.getState().setAuth(response.user, response.token);
 ```
 
 ```typescript raw axios
-import api from '@/services/api';
+import api from '../../services/api';
 
 const { data } = await api.post('/auth/login', {
   email: 'user@example.com',
@@ -67,7 +67,7 @@ const { data } = await api.post('/auth/login', {
 </CodeGroup>
 
 <Note>
-  After a successful login, pass the returned `token` and `user` to `useAuthStore.setAuth()`. This persists the token to `localStorage` under the key `"token"` and makes it available to the axios request interceptor for all future requests.
+  After a successful login, pass the returned `user` and `token` to `useAuthStore.setAuth(user, token)` — note that `user` comes first. This persists the token to `localStorage` under the key `"token"` and makes it available to the axios request interceptor for all future requests.
 </Note>
 
 <Warning>

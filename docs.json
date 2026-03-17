@@ -38,7 +38,8 @@
               "features/dashboard",
               "features/challenges",
               "features/tasks",
-              "features/gamification"
+              "features/gamification",
+              "features/profile"
             ]
           },
           {

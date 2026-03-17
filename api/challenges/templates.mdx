@@ -57,7 +57,7 @@ Returns an array of `ChallengeTemplate` objects.
 ### Code example
 
 ```typescript
-import { challengeService } from '@/services/challenge.service';
+import { challengeService } from '../../services/challenge.service';
 
 const templates = await challengeService.listTemplates();
 // templates: ChallengeTemplate[]
@@ -92,7 +92,7 @@ Returns the newly created `ChallengeTemplate` object.
 ### Code example
 
 ```typescript
-import { challengeService } from '@/services/challenge.service';
+import { challengeService } from '../../services/challenge.service';
 
 const template = await challengeService.createTemplate({
   title: '30-Day Reading Challenge',
@@ -123,7 +123,7 @@ Returns no body on success.
 ### Code example
 
 ```typescript
-import { challengeService } from '@/services/challenge.service';
+import { challengeService } from '../../services/challenge.service';
 
 await challengeService.deleteTemplate(42);
 // resolves void on success

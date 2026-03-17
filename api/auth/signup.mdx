@@ -47,8 +47,8 @@ Creates a new user account. On success, returns a JWT token and the newly create
 <CodeGroup>
 
 ```typescript authService.signup
-import { authService } from '@/services/auth.service';
-import { useAuthStore } from '@/stores/auth.store';
+import { authService } from '../../services/auth.service';
+import { useAuthStore } from '../../store/authStore';
 
 const response = await authService.signup(
   'Jane Doe',
@@ -56,12 +56,12 @@ const response = await authService.signup(
   'securepassword'
 );
 
-// Persist the token and user data immediately — no separate login needed
-useAuthStore.getState().setAuth(response.token, response.user);
+// setAuth(user, token) — user is first, token is second
+useAuthStore.getState().setAuth(response.user, response.token);
 ```
 
 ```typescript raw axios
-import api from '@/services/api';
+import api from '../../services/api';
 
 const { data } = await api.post('/auth/signup', {
   name: 'Jane Doe',

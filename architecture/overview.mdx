@@ -7,52 +7,39 @@ Mais Hábito is a single-page application with a clear separation between routin
 
 ## Folder structure
 
-<Tree>
-  <Tree.Folder name="src" defaultOpen>
-    <Tree.Folder name="components" defaultOpen>
-      <Tree.File name="ErrorBoundary.tsx" />
-      <Tree.Folder name="layout">
-        <Tree.File name="PrivateLayout.tsx" />
-        <Tree.File name="Sidebar.tsx" />
-        <Tree.File name="BottomNav.tsx" />
-      </Tree.Folder>
-    </Tree.Folder>
-    <Tree.Folder name="pages">
-      <Tree.Folder name="auth" />
-      <Tree.Folder name="home" />
-      <Tree.Folder name="dashboard" />
-      <Tree.Folder name="challenges" />
-      <Tree.Folder name="tasks" />
-      <Tree.Folder name="profile" />
-    </Tree.Folder>
-    <Tree.Folder name="services">
-      <Tree.File name="api.ts" />
-      <Tree.File name="auth.service.ts" />
-      <Tree.File name="challenge.service.ts" />
-      <Tree.File name="task.service.ts" />
-      <Tree.File name="user.service.ts" />
-    </Tree.Folder>
-    <Tree.Folder name="store">
-      <Tree.File name="authStore.ts" />
-      <Tree.File name="themeStore.ts" />
-      <Tree.File name="appCache.ts" />
-    </Tree.Folder>
-    <Tree.Folder name="styles">
-      <Tree.File name="theme.ts" />
-      <Tree.File name="GlobalStyle.ts" />
-    </Tree.Folder>
-    <Tree.Folder name="types" />
-    <Tree.Folder name="routes">
-      <Tree.File name="AppRoutes.tsx" />
-    </Tree.Folder>
-    <Tree.File name="main.tsx" />
-    <Tree.File name="App.tsx" />
-  </Tree.Folder>
-</Tree>
+```
+src/
+├── components/          # Shared UI: ErrorBoundary, PrivateLayout, Sidebar, BottomNav
+├── pages/
+│   ├── auth/            # LoginPage, SignupPage
+│   ├── home/            # HomePage (landing / public)
+│   ├── dashboard/       # DashboardPage
+│   ├── challenges/      # ChallengesPage + modals (ActiveChallengeCard, CreateChallengeModal, etc.)
+│   ├── tasks/           # TasksPage + TaskItem, CreateTaskModal, EditTaskModal, DeleteTaskModal
+│   └── profile/         # ProfilePage
+├── services/
+│   ├── api.ts           # Axios instance with JWT interceptors
+│   ├── auth.service.ts
+│   ├── challenge.service.ts
+│   ├── task.service.ts
+│   └── user.service.ts
+├── store/
+│   ├── authStore.ts     # Auth state + localStorage persistence
+│   ├── themeStore.ts    # Dark/light toggle
+│   └── appCache.ts      # In-memory API response cache
+├── styles/
+│   ├── theme.ts         # darkTheme and lightTheme token objects
+│   └── GlobalStyle.ts   # Global CSS reset via Styled Components
+├── types/               # TypeScript DTOs and styled.d.ts augmentation
+├── routes/
+│   └── AppRoutes.tsx    # Route definitions, PrivateRoute, PublicRoute
+├── main.tsx             # App entry — ThemeProvider, Toaster
+└── App.tsx              # BrowserRouter + ErrorBoundary
+```
 
 ## Layer responsibilities
 
-<Columns cols={2}>
+<CardGroup cols={2}>
   <Card title="components/" icon="puzzle-piece">
     Shared UI elements reused across pages. Includes the `PrivateLayout`, collapsible `Sidebar`, and `BottomNav` for mobile.
   </Card>
@@ -71,7 +58,7 @@ Mais Hábito is a single-page application with a clear separation between routin
   <Card title="types/" icon="code">
     TypeScript DTOs and interface declarations, including `styled.d.ts` which augments `DefaultTheme` with the Styled Components type system.
   </Card>
-</Columns>
+</CardGroup>
 
 ## Component design
 
@@ -89,13 +76,13 @@ Pages never import Axios directly. All network calls go through a service file:
 
 ```typescript
 // Correct — call a service function
-import { getTasks } from '../../services/task.service';
+import { taskService } from '../../services/task.service';
 
-const data = await getTasks();
+const data = await taskService.listMyTasks();
 
 // Incorrect — do not call api directly from a page
 import api from '../../services/api';
-const data = await api.get('/tasks');
+const data = await api.get('/tasks/me');
 ```
 
 The shared `api.ts` Axios instance adds the `Authorization: Bearer <token>` header automatically on every request and handles 401 responses by clearing credentials and redirecting to `/`.
