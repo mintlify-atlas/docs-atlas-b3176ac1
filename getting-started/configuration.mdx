@@ -1,0 +1,63 @@
+---
+title: "Configuration"
+description: "Configure environment variables to connect Mais Hábito to your API backend."
+---
+
+## Environment variables
+
+Mais Hábito uses a single required environment variable to connect the frontend to the backend API. Configuration lives in a `.env` file at the project root.
+
+### Setting up `.env`
+
+Copy the provided example file to create your local configuration:
+
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` with the correct value for your environment:
+
+```env
+VITE_API_URL=http://localhost:3000/api
+```
+
+## Variables reference
+
+### `VITE_API_URL`
+
+**Required.** The base URL for all HTTP requests made by the application.
+
+This value is passed directly to [Axios](https://axios-http.com) as the `baseURL` when the API client is initialized in `src/services/api.ts`:
+
+```typescript
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
+```
+
+Every service call in the app (authentication, challenges, tasks, etc.) uses this client, so the variable must point to the root of your running Mais Hábito API.
+
+<Warning>
+  If `VITE_API_URL` is not set, the app will throw the following error immediately on startup and refuse to load:
+
+  ```
+  Error: VITE_API_URL is not defined in .env
+  ```
+
+  Make sure the variable is present in your `.env` file before running `npm run dev` or building.
+</Warning>
+
+### Why the `VITE_` prefix?
+
+Vite only exposes environment variables that are prefixed with `VITE_` to client-side code. Variables without this prefix are never bundled into the browser build. This is a Vite security convention — see the [Vite env vars docs](https://vite.dev/guide/env-and-mode) for more detail.
+
+## Available npm scripts
+
+Once your `.env` is configured, the following scripts are available:
+
+| Script | Command | Description |
+|--------|---------|-------------|
+| `dev` | `npm run dev` | Start the Vite development server with hot module replacement at `http://localhost:5173` |
+| `build` | `npm run build` | Type-check with `tsc`, then produce a production bundle in `dist/` |
+| `preview` | `npm run preview` | Serve the production build locally to verify it before deploying |
+| `lint` | `npm run lint` | Run ESLint across the entire source tree |

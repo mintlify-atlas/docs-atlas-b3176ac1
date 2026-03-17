@@ -1,0 +1,86 @@
+---
+title: "Installation"
+description: "Get Mais Hábito running locally in a few minutes."
+---
+
+## Prerequisites
+
+Before you begin, make sure you have the following installed:
+
+- **Node.js** v18 or higher
+- **npm** (bundled with Node.js)
+- A running instance of the [Mais Hábito API](https://github.com/RafaeltiMoreira/mais-habito-api) backend
+
+<Note>
+  The Mais Hábito web app is a pure frontend client — it requires the **mais-habito-api** backend to be running separately before the app is functional. See the API repository for its own setup instructions.
+</Note>
+
+## Setup
+
+<Steps>
+  <Step title="Clone the repository">
+    Clone the Mais Hábito web repository to your local machine:
+
+    ```bash
+    git clone https://github.com/RafaeltiMoreira/mais-habito-web.git
+    ```
+
+    Then navigate into the project directory:
+
+    ```bash
+    cd mais-habito-web
+    ```
+  </Step>
+
+  <Step title="Install dependencies">
+    Install all required packages:
+
+    <CodeGroup>
+      ```bash npm
+      npm install
+      ```
+
+      ```bash yarn
+      yarn install
+      ```
+
+      ```bash pnpm
+      pnpm install
+      ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="Configure environment variables">
+    Copy the example environment file and set your API URL:
+
+    ```bash
+    cp .env.example .env
+    ```
+
+    Open `.env` and set `VITE_API_URL` to the base URL of your running API:
+
+    ```env
+    VITE_API_URL=http://localhost:3000/api
+    ```
+
+    See the [Configuration](/getting-started/configuration) page for full details on this variable.
+  </Step>
+
+  <Step title="Start the development server">
+    <CodeGroup>
+      ```bash npm
+      npm run dev
+      ```
+
+      ```bash yarn
+      yarn dev
+      ```
+
+      ```bash pnpm
+      pnpm dev
+      ```
+    </CodeGroup>
+
+    The app will be available at **http://localhost:5173**.
+  </Step>
+</Steps>

@@ -1,0 +1,111 @@
+---
+title: "Tasks & Agenda"
+description: "Create and manage daily tasks — each worth a defined point value — to organize your day."
+---
+
+Tasks are the core unit of activity in Mais Hábito. Each task has a point value, and completing tasks is the primary way to earn XP and maintain your daily streak.
+
+## TypeScript interfaces
+
+```typescript
+export interface Task {
+  id: number;
+  user_id: string;
+  challenge_template_id: number | null;
+  title: string;
+  description: string | null;
+  points: number;
+  is_daily_routine: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TaskWithCount {
+  task: Task;
+  completion_count: number;
+}
+
+export interface CreateTaskData {
+  challenge_template_id?: number | null;
+  title: string;
+  description?: string;
+  points: number;
+  is_daily_routine?: boolean;
+}
+
+export interface UpdateTaskData {
+  title?: string;
+  description?: string;
+  points?: number;
+  is_daily_routine?: boolean;
+}
+```
+
+## Daily routine vs. one-off tasks
+
+The `is_daily_routine` flag controls how a task is tracked:
+
+| Type | `is_daily_routine` | Behavior |
+|---|---|---|
+| **Daily routine** | `true` | Can be completed once per day. The complete button is disabled after the first completion of the day. Contributes to streak tracking. |
+| **One-off task** | `false` | Can be completed multiple times without a daily restriction. The `completion_count` still increments each time. |
+
+<Tip>
+  Set points thoughtfully. Harder habits that require more effort or willpower should be worth more points. A light warm-up routine might be worth 5 points while a focused 90-minute deep work session might be worth 50. Calibrating point values makes the leaderboard and your personal progress more meaningful.
+</Tip>
+
+## Creating a task
+
+<Steps>
+  <Step title="Open the create modal">
+    On the Tasks page, click **Nova Tarefa** in the top-right corner.
+  </Step>
+  <Step title="Fill in the fields">
+    | Field | Required | Notes |
+    |---|---|---|
+    | **Título** | Yes | Name of the habit or task |
+    | **Descrição** | No | Optional context or instructions |
+    | **Pontos** | Yes | Integer point value awarded on completion |
+    | **Tarefa Diária** | No | Check this box to make it a repeatable daily routine |
+  </Step>
+  <Step title="Create">
+    Click **Criar Tarefa**. The task appears in your task list immediately.
+  </Step>
+</Steps>
+
+## Viewing your task list
+
+The Tasks page displays all your tasks with three filter tabs:
+
+<Tabs>
+  <Tab title="Todas">
+    Shows every task regardless of completion status.
+  </Tab>
+  <Tab title="Pendentes">
+    Shows only tasks that have not been completed today. For non-daily tasks, these always appear here.
+  </Tab>
+  <Tab title="Concluídas">
+    Shows only daily routine tasks that have already been completed today.
+  </Tab>
+</Tabs>
+
+If you have an active challenge, a badge in the header shows which challenge is currently running.
+
+## Completing a task
+
+Click the complete button on any task card. On success:
+
+- Your XP points increase by the task's `points` value
+- Your daily streak is maintained (or extended if this is your first completion today)
+- A toast notification confirms the completion
+- The task list refreshes silently in the background
+
+Completing a task from the [Dashboard](/features/dashboard) works the same way.
+
+## Editing a task
+
+Click the edit icon on a task card to open the edit modal. You can update the title, description, point value, and daily routine flag. All fields from `UpdateTaskData` are editable.
+
+## Deleting a task
+
+Click the delete icon on a task card to open a confirmation modal. Confirm to permanently remove the task. Deleted tasks cannot be recovered.

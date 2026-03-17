@@ -1,0 +1,75 @@
+---
+title: "Login"
+description: "Authenticate a user and receive a JWT token."
+---
+
+`POST /auth/login`
+
+Authenticates an existing user with their email and password. Returns a JWT token and basic user information. The token is valid for subsequent authenticated requests.
+
+## Request body
+
+<ParamField body="email" type="string" required>
+  The user's email address.
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  The user's password.
+</ParamField>
+
+## Response
+
+<ResponseField name="token" type="string" required>
+  JWT token to include in the `Authorization` header of subsequent requests.
+</ResponseField>
+
+<ResponseField name="user" type="object" required>
+  Basic information about the authenticated user.
+  <Expandable title="properties">
+    <ResponseField name="id" type="string" required>
+      Unique identifier for the user.
+    </ResponseField>
+    <ResponseField name="email" type="string" required>
+      The user's email address.
+    </ResponseField>
+    <ResponseField name="name" type="string" required>
+      The user's display name.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Code example
+
+<CodeGroup>
+
+```typescript authService.login
+import { authService } from '@/services/auth.service';
+import { useAuthStore } from '@/stores/auth.store';
+
+const response = await authService.login('user@example.com', 'password123');
+
+// Persist the token and user data
+useAuthStore.getState().setAuth(response.token, response.user);
+```
+
+```typescript raw axios
+import api from '@/services/api';
+
+const { data } = await api.post('/auth/login', {
+  email: 'user@example.com',
+  password: 'password123',
+});
+
+// data.token — JWT token
+// data.user  — { id, email, name }
+```
+
+</CodeGroup>
+
+<Note>
+  After a successful login, pass the returned `token` and `user` to `useAuthStore.setAuth()`. This persists the token to `localStorage` under the key `"token"` and makes it available to the axios request interceptor for all future requests.
+</Note>
+
+<Warning>
+  The axios instance automatically handles 401 responses. If a 401 is received on any non-auth page, the token is removed from `localStorage`, `sessionStorage` is cleared, and the user is redirected to `/`. This interceptor does **not** fire on `/login`, `/signup`, or `/`, so those pages can display their own error messages.
+</Warning>

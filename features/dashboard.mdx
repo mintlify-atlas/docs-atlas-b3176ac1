@@ -1,0 +1,69 @@
+---
+title: "Dashboard"
+description: "Your gamified home base — track XP points, streaks, and active challenges at a glance."
+---
+
+The dashboard is the first screen you see after logging in. It pulls together your gamification stats, active challenge, and upcoming tasks into a single view so you can assess your day without navigating anywhere else.
+
+## What's on the dashboard
+
+### Greeting header
+
+The page opens with a greeting using your first name (e.g., "Olá, Rafael!") and a motivational subtitle. The first name is derived from the `name` field on your user profile.
+
+### Gamification stats
+
+Two stat cards appear side by side:
+
+| Card | What it shows |
+|---|---|
+| **Seus pontos** | Your total accumulated XP points (`points`) |
+| **Sequência** | Your current daily streak in days (`current_streak`) with your all-time best shown below (`Max: {max_streak}`) |
+
+See [Gamification system](/features/gamification) for a full explanation of how points and streaks work.
+
+### Active challenge card
+
+If you have an active challenge, a card displays:
+
+- The challenge name (from the template title)
+- The date you started it
+- A "Ver Detalhes →" button that takes you to the [Challenges](/features/challenges) page
+
+If no challenge is active, an empty state appears with an "Explorar Desafios" button that links to the Challenges page.
+
+### Quick task list
+
+Your first three tasks are shown as cards. Each card displays:
+
+- The task title and description
+- A points badge showing how many XP the task is worth (e.g., `+10PTS`)
+- A **Concluir** button to complete the task directly from the dashboard
+
+For daily routine tasks (`is_daily_routine: true`), the button is disabled and shows **Concluída ✓** once the task has been completed today.
+
+If you have no tasks yet, an info card is shown explaining how to get started.
+
+## Completing a task from the dashboard
+
+<Steps>
+  <Step title="Locate the task card">
+    The dashboard shows up to three of your tasks. Find the task you want to mark as done.
+  </Step>
+  <Step title="Click Concluir">
+    Press the **Concluir** button on the task card. The button is disabled for daily routine tasks that are already completed today.
+  </Step>
+  <Step title="Stats refresh">
+    After completion, the dashboard silently re-fetches your profile, challenge, and task data. Your points and streak update without a full page reload.
+  </Step>
+</Steps>
+
+<Note>
+  The dashboard uses a Zustand-powered app cache (`useAppCache`). When you navigate back to the dashboard, data loads instantly from the in-memory cache while a background fetch silently updates any changes. This means the numbers you see are always at most one navigation cycle stale.
+</Note>
+
+## Navigating from the dashboard
+
+- **VER TODAS** (next to the tasks heading) — goes to [Tasks & Agenda](/features/tasks)
+- **Ver Detalhes →** (on the challenge card) — goes to [Challenges](/features/challenges)
+- **Explorar Desafios** (empty challenge state) — goes to [Challenges](/features/challenges)

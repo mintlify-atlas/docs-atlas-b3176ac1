@@ -1,0 +1,130 @@
+---
+title: "Challenge templates"
+description: "Manage the catalog of challenge templates that users can browse and accept."
+---
+
+Challenge templates are the building blocks of the gamification system. They define the title, description, and duration of a challenge. Users browse the catalog and accept a template to create their own [user challenge](/api/challenges/user-challenges).
+
+## TypeScript interface
+
+```typescript
+export interface ChallengeTemplate {
+  id: number;
+  title: string;
+  description: string;
+  duration_days: number;
+  created_at: string; // ISO 8601
+  updated_at: string; // ISO 8601
+}
+```
+
+---
+
+## List all templates
+
+`GET /challenge-templates`
+
+Returns the full catalog of available challenge templates.
+
+### Response
+
+Returns an array of `ChallengeTemplate` objects.
+
+<ResponseField name="[]" type="ChallengeTemplate[]">
+  Array of challenge templates.
+  <Expandable title="properties">
+    <ResponseField name="id" type="number" required>
+      Unique identifier for the template.
+    </ResponseField>
+    <ResponseField name="title" type="string" required>
+      Display title of the challenge.
+    </ResponseField>
+    <ResponseField name="description" type="string" required>
+      Full description of the challenge goals and rules.
+    </ResponseField>
+    <ResponseField name="duration_days" type="number" required>
+      How many days the challenge lasts once accepted.
+    </ResponseField>
+    <ResponseField name="created_at" type="string" required>
+      ISO 8601 timestamp of when the template was created.
+    </ResponseField>
+    <ResponseField name="updated_at" type="string" required>
+      ISO 8601 timestamp of the last update.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Code example
+
+```typescript
+import { challengeService } from '@/services/challenge.service';
+
+const templates = await challengeService.listTemplates();
+// templates: ChallengeTemplate[]
+```
+
+---
+
+## Create a template
+
+`POST /challenge-templates`
+
+Creates a new challenge template in the catalog.
+
+### Request body
+
+<ParamField body="title" type="string" required>
+  Display title for the challenge.
+</ParamField>
+
+<ParamField body="description" type="string" required>
+  Full description of the challenge goals and rules.
+</ParamField>
+
+<ParamField body="duration_days" type="number" required>
+  Number of days the challenge lasts once a user accepts it.
+</ParamField>
+
+### Response
+
+Returns the newly created `ChallengeTemplate` object.
+
+### Code example
+
+```typescript
+import { challengeService } from '@/services/challenge.service';
+
+const template = await challengeService.createTemplate({
+  title: '30-Day Reading Challenge',
+  description: 'Read for at least 20 minutes every day for 30 days.',
+  duration_days: 30,
+});
+// template: ChallengeTemplate
+```
+
+---
+
+## Delete a template
+
+`DELETE /challenge-templates/:id`
+
+Permanently deletes a challenge template from the catalog.
+
+### Path parameters
+
+<ParamField path="id" type="number" required>
+  The numeric ID of the template to delete.
+</ParamField>
+
+### Response
+
+Returns no body on success.
+
+### Code example
+
+```typescript
+import { challengeService } from '@/services/challenge.service';
+
+await challengeService.deleteTemplate(42);
+// resolves void on success
+```

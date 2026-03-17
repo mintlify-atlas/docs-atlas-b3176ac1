@@ -1,0 +1,185 @@
+---
+title: "State management"
+description: "How Mais Hábito uses Zustand for global state, authentication, and caching."
+---
+
+Mais Hábito uses [Zustand](https://zustand-demo.pmnd.rs/) for all global state. There are three stores, each with a distinct responsibility: authentication, theme, and in-memory data caching.
+
+## Stores at a glance
+
+<Columns cols={3}>
+  <Card title="useAuthStore" icon="lock">
+    Stores the current user and JWT token. Persists to `localStorage` so sessions survive page refreshes.
+  </Card>
+  <Card title="useThemeStore" icon="sun">
+    Tracks whether the app is in dark or light mode. Persists the preference to `localStorage`.
+  </Card>
+  <Card title="useAppCache" icon="database">
+    In-memory cache for API responses: tasks, challenges, dashboard metrics, and the user profile.
+  </Card>
+</Columns>
+
+## useAuthStore
+
+`authStore.ts` manages the authentication lifecycle.
+
+### Interfaces
+
+```typescript
+interface User {
+  id: string;
+  email: string;
+  name: string;
+}
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  setAuth: (user: User, token: string) => void;
+  logout: () => void;
+}
+```
+
+### State initialisation
+
+On app load, the store reads `token` and `user` from `localStorage`. If a token is present, `isAuthenticated` is set to `true` immediately — before any network request — so the route guards allow access to private pages without a loading screen.
+
+```typescript
+user: getInitialUser(),   // JSON.parse(localStorage.getItem('user'))
+token: getInitialToken(), // localStorage.getItem('token')
+isAuthenticated: !!getInitialToken(),
+```
+
+### setAuth and logout
+
+| Action | Effect |
+|---|---|
+| `setAuth(user, token)` | Writes `token` and `user` to `localStorage`, then updates the store |
+| `logout()` | Removes `token` and `user` from `localStorage`, removes `_up` from `sessionStorage`, and resets the store to unauthenticated |
+
+### Consuming the store
+
+```typescript
+import { useAuthStore } from '../store/authStore';
+
+const { user, isAuthenticated, logout } = useAuthStore();
+```
+
+Subscribe to only the slice you need to avoid unnecessary re-renders:
+
+```typescript
+const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+```
+
+## useThemeStore
+
+`themeStore.ts` holds a single boolean, `isDark`, and a `toggleTheme` action.
+
+```typescript
+interface ThemeState {
+  isDark: boolean;
+  toggleTheme: () => void;
+}
+```
+
+The initial value reads from `localStorage`. If no value is stored, the app defaults to dark mode:
+
+```typescript
+isDark: localStorage.getItem('theme') !== 'light',
+```
+
+Calling `toggleTheme()` flips the boolean and writes the new value to `localStorage` so the preference persists across sessions.
+
+The `Sidebar` and `BottomNav` components use `useThemeStore` to render the sun/moon toggle button. Theme switching takes effect immediately because `main.tsx` passes the active theme object to Styled Components' `ThemeProvider`.
+
+## useAppCache
+
+`appCache.ts` keeps API responses in memory so navigating between pages feels instant. The store holds data for all four main sections of the app.
+
+```typescript
+interface AppCache {
+  // Dashboard
+  dashboardTasks: TaskWithCount[];
+  dashboardMetrics: DashboardMetrics | null;
+
+  // Challenges
+  activeUserChallenge: UserChallenge | null;
+  userChallenges: UserChallenge[];
+  challengeTemplates: ChallengeTemplate[];
+
+  // Tasks
+  tasks: TaskWithCount[];
+
+  // Profile
+  profile: UserProfile | null;
+
+  setDashboard: (data: Partial<Pick<AppCache, 'dashboardTasks' | 'dashboardMetrics'>>) => void;
+  setChallenges: (data: Partial<Pick<AppCache, 'activeUserChallenge' | 'userChallenges' | 'challengeTemplates'>>) => void;
+  setTasks: (data: Partial<Pick<AppCache, 'tasks'>>) => void;
+  setProfile: (profile: UserProfile | null) => void;
+  clearCache: () => void;
+}
+```
+
+### Cache strategy
+
+When a page mounts:
+
+1. If the cache already holds data for that section, it renders immediately using the cached values.
+2. A background fetch runs regardless and updates the cache once the API responds.
+3. The component re-renders only if the new data differs from what's already in the store.
+
+This means the first navigation to a page after login may show a brief loading state, but all subsequent visits are instant.
+
+<Note>
+  Call `clearCache()` on logout (or when stale data is a concern) to reset all cached values back to their empty defaults. The `logout` action in `useAuthStore` does not automatically clear the app cache — make sure your logout handler calls both.
+</Note>
+
+### DashboardMetrics shape
+
+```typescript
+interface DashboardMetrics {
+  currentStreak: number;
+  maxStreak: number;
+  points: number;
+  completedToday: boolean;
+}
+```
+
+## localStorage persistence
+
+Two stores write to `localStorage` for cross-session persistence:
+
+| Key | Store | Value |
+|---|---|---|
+| `token` | `useAuthStore` | JWT string |
+| `user` | `useAuthStore` | JSON-serialised `User` object |
+| `theme` | `useThemeStore` | `"dark"` or `"light"` |
+
+`useAppCache` is intentionally in-memory only — cached API data is not persisted to storage.
+
+## JWT interceptor
+
+<Note>
+  The Axios instance in `services/api.ts` automatically attaches the JWT from `localStorage` to every outgoing request as an `Authorization: Bearer <token>` header. You do not need to pass the token manually when calling service functions.
+</Note>
+
+The response interceptor also handles expired or invalid tokens. If a `401` response is received on a non-auth page, it clears the token from `localStorage` and redirects to `/`:
+
+```typescript
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      const isAuthPage = ['/', '/login', '/signup'].includes(window.location.pathname);
+      if (!isAuthPage) {
+        localStorage.removeItem('token');
+        sessionStorage.removeItem('_up');
+        window.location.href = '/';
+      }
+    }
+    return Promise.reject(error);
+  },
+);
+```

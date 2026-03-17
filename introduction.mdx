@@ -1,0 +1,54 @@
+---
+title: "Introduction"
+description: "Mais Hábito is a gamified personal productivity web app that helps you build consistent habits through challenges, daily tasks, XP points, and streak tracking."
+---
+
+## What is Mais Hábito?
+
+Mais Hábito ("More Habit" in Portuguese) is a single-player web application focused on personal productivity. It lets you create daily tasks, accept long-term challenge tracks, and build momentum through a gamification system of experience points and streaks.
+
+The app is entirely frontend-driven and communicates with the [Mais Hábito API](https://github.com/RafaeltiMoreira/mais-habito-api) for all data persistence.
+
+## Key features
+
+<CardGroup cols={2}>
+  <Card title="Gamified dashboard" icon="chart-line" href="/features/dashboard">
+    Track your XP points, current streak, and max streak at a glance.
+  </Card>
+  <Card title="Challenge catalog" icon="trophy" href="/features/challenges">
+    Browse and accept multi-day challenge tracks, or create your own templates.
+  </Card>
+  <Card title="Task management" icon="check" href="/features/tasks">
+    Create, update, and complete daily tasks — each worth a defined point value.
+  </Card>
+  <Card title="Streak & XP system" icon="fire" href="/features/gamification">
+    Stay consistent to build streaks and accumulate XP that reflects your effort.
+  </Card>
+</CardGroup>
+
+## Tech stack
+
+Mais Hábito is built with modern React tooling:
+
+| Layer | Technology |
+|---|---|
+| UI framework | React 19 |
+| Language | TypeScript 5 |
+| Bundler | Vite 6 |
+| Styling | Styled Components 6 |
+| State management | Zustand 5 |
+| HTTP client | Axios (with JWT interceptors) |
+| Forms & validation | React Hook Form 7 + Zod |
+| Icons | lucide-react |
+| Routing | React Router DOM 7 |
+
+## Getting started
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/getting-started/installation">
+    Clone the repo and install dependencies in minutes.
+  </Card>
+  <Card title="Configuration" icon="gear" href="/getting-started/configuration">
+    Set up your environment variables and connect to the API.
+  </Card>
+</CardGroup>

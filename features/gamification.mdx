@@ -1,0 +1,82 @@
+---
+title: "Gamification system"
+description: "Earn XP points and maintain streaks to stay motivated and build lasting habits."
+---
+
+Mais Hábito uses two core mechanics to keep you engaged: **XP points** you accumulate by completing tasks and challenges, and a **Sequência** (streak) that measures how many consecutive days you've been active.
+
+## UserProfile
+
+All gamification data lives on your user profile:
+
+```typescript
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  profile_picture: string | null;
+  points: number;
+  current_streak: number;
+  max_streak: number;
+  created_at: string;
+  updated_at: string;
+}
+```
+
+| Field | Description |
+|---|---|
+| `points` | Total XP points earned across all tasks and challenges |
+| `current_streak` | Number of consecutive days with at least one task completion |
+| `max_streak` | Your all-time best streak, preserved even after the current streak resets |
+
+## XP points
+
+Every task carries a `points` value you set when creating it. When you complete the task, that value is added to your total `points`. There is no cap — points accumulate indefinitely.
+
+Points are visible in two places:
+
+- **Dashboard** — the "Seus pontos" stat card shows your current total
+- **Profile** — your full point history is tied to your account
+
+## Sequência (streak)
+
+The streak is the most visible motivational mechanic in Mais Hábito. It counts how many consecutive calendar days you have completed at least one task.
+
+<CardGroup cols={2}>
+  <Card title="Current streak" icon="flame">
+    `current_streak` increments each day you complete at least one task. It resets to zero if you miss a day.
+  </Card>
+  <Card title="Max streak" icon="trophy">
+    `max_streak` records your all-time best. It only updates when your current streak surpasses it — missing a day does not reduce it.
+  </Card>
+</CardGroup>
+
+### How streak days work
+
+The streak is maintained by task completions. Each time you call the complete task endpoint (`POST /task-completions`), the backend checks whether you have completed a task today and updates `current_streak` accordingly.
+
+- First completion of the day — streak advances by one
+- Subsequent completions on the same day — streak stays the same (already counted)
+- No completion on a given day — streak resets to zero the following day
+
+<Tip>
+  You only need to complete **one task** to keep your streak alive for the day. On busy days, mark your lowest-effort daily routine task done first to protect your streak before tackling the rest.
+</Tip>
+
+### Where to see your streak
+
+The dashboard shows both `current_streak` (labeled **Sequência**) and `max_streak` (labeled **Max:**) in the stats row. The flame icon next to the card reinforces that this is the streak counter.
+
+## Dashboard stats at a glance
+
+The two stat cards on the dashboard give you an instant read of your gamification standing:
+
+```
+┌─────────────────┐  ┌─────────────────┐
+│  Seus pontos    │  │  Sequência      │
+│  1 240 PTS      │  │  7 Dias         │
+│                 │  │  Max: 14        │
+└─────────────────┘  └─────────────────┘
+```
+
+Both values come from the `UserProfile` fetched on load and cached in the Zustand app store. They refresh silently after every task completion.

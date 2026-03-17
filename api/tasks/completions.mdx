@@ -1,0 +1,85 @@
+---
+title: "Task completions"
+description: "Mark tasks as complete and earn XP points."
+---
+
+`POST /task-completions`
+
+Records a completion event for a task. Each call earns the user the XP points defined on the task, updates their streak, and returns a `TaskCompletion` record.
+
+## TypeScript interface
+
+```typescript
+export interface TaskCompletion {
+  id: number;
+  user_id: string;
+  task_id: number;
+  completed_at: string; // ISO 8601 timestamp
+}
+```
+
+## Request body
+
+<ParamField body="task_id" type="number" required>
+  The ID of the task being completed.
+</ParamField>
+
+<ParamField body="photo_url" type="string">
+  Optional URL of a photo submitted as proof of completion. Pass `null` if no photo is attached.
+</ParamField>
+
+## Response
+
+<ResponseField name="id" type="number" required>
+  Unique identifier for this completion record.
+</ResponseField>
+
+<ResponseField name="user_id" type="string" required>
+  ID of the user who completed the task.
+</ResponseField>
+
+<ResponseField name="task_id" type="number" required>
+  ID of the completed task.
+</ResponseField>
+
+<ResponseField name="completed_at" type="string" required>
+  ISO 8601 timestamp of when the completion was recorded.
+</ResponseField>
+
+## Code example
+
+<CodeGroup>
+
+```typescript taskService.completeTask
+import { taskService } from '@/services/task.service';
+
+// Without a photo
+const completion = await taskService.completeTask(taskId);
+
+// With a photo URL
+const completion = await taskService.completeTask(taskId, 'https://cdn.example.com/photos/abc.jpg');
+
+// completion: TaskCompletion
+// completion.completed_at — ISO 8601 timestamp
+```
+
+```typescript raw axios
+import api from '@/services/api';
+
+const { data } = await api.post('/task-completions', {
+  task_id: taskId,
+  photo_url: photoUrl || null,
+});
+
+// data: TaskCompletion
+```
+
+</CodeGroup>
+
+<Note>
+  Completing a task triggers backend side effects: the user's `points` balance is incremented by the task's `points` value, and the streak counters (`current_streak` and `max_streak`) on the user profile are recalculated. Fetch the updated profile from `GET /user/profile` to reflect these changes in the UI.
+</Note>
+
+<Tip>
+  The `photo_url` field is optional. The service implementation passes `photoUrl || null`, so you can safely call `taskService.completeTask(taskId)` without a second argument — it will send `photo_url: null` automatically.
+</Tip>

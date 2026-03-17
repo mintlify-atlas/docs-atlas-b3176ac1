@@ -1,0 +1,211 @@
+---
+title: "Tasks"
+description: "Create and manage daily tasks, each worth a defined point value."
+---
+
+Tasks are the core unit of daily activity in Mais Hábito. Each task belongs to the authenticated user and is worth a configurable number of points. Tasks can be tied to a specific challenge template or exist as standalone habits. Completing a task earns the user points and contributes to their streak.
+
+## TypeScript interfaces
+
+```typescript
+export interface Task {
+  id: number;
+  user_id: string;
+  challenge_template_id: number | null; // null for standalone tasks
+  title: string;
+  description: string | null;
+  points: number;             // XP awarded on completion
+  is_daily_routine: boolean;  // true = appears every day
+  created_at: string;         // ISO 8601
+  updated_at: string;         // ISO 8601
+}
+
+export interface TaskWithCount {
+  task: Task;
+  completion_count: number; // Total times this task has been completed
+}
+
+export interface CreateTaskData {
+  challenge_template_id?: number | null;
+  title: string;
+  description?: string;
+  points: number;
+  is_daily_routine?: boolean;
+}
+
+export interface UpdateTaskData {
+  title?: string;
+  description?: string;
+  points?: number;
+  is_daily_routine?: boolean;
+}
+```
+
+### Field reference
+
+| Field | Type | Description |
+|---|---|---|
+| `points` | `number` | XP awarded each time this task is completed. |
+| `is_daily_routine` | `boolean` | When `true`, the task is part of the user's daily routine and appears in the daily task list every day. |
+| `challenge_template_id` | `number \| null` | Links this task to a specific challenge template. `null` for general habits not tied to any challenge. |
+| `completion_count` | `number` | *(TaskWithCount only)* Cumulative count of how many times the task has been completed. |
+
+---
+
+## Create a task
+
+`POST /tasks`
+
+Creates a new task for the authenticated user.
+
+### Request body
+
+<ParamField body="title" type="string" required>
+  Display name for the task.
+</ParamField>
+
+<ParamField body="points" type="number" required>
+  Number of XP points awarded each time this task is completed.
+</ParamField>
+
+<ParamField body="description" type="string">
+  Optional longer description or notes for the task.
+</ParamField>
+
+<ParamField body="is_daily_routine" type="boolean">
+  Whether this task is part of the user's daily routine. Defaults to `false`.
+</ParamField>
+
+<ParamField body="challenge_template_id" type="number">
+  ID of the challenge template this task belongs to. Omit or pass `null` for standalone tasks.
+</ParamField>
+
+### Response
+
+Returns the newly created `Task` object.
+
+### Code example
+
+```typescript
+import { taskService } from '@/services/task.service';
+
+const task = await taskService.createTask({
+  title: 'Morning run',
+  description: 'At least 20 minutes outdoors',
+  points: 15,
+  is_daily_routine: true,
+});
+// task: Task
+```
+
+---
+
+## List my tasks
+
+`GET /tasks/me`
+
+Returns all tasks belonging to the authenticated user, each paired with a completion count.
+
+### Response
+
+Returns an array of `TaskWithCount` objects.
+
+<ResponseField name="[]" type="TaskWithCount[]">
+  Array of tasks with completion counts.
+  <Expandable title="properties">
+    <ResponseField name="task" type="Task" required>
+      The full task object.
+    </ResponseField>
+    <ResponseField name="completion_count" type="number" required>
+      Total number of times this task has been completed.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Code example
+
+```typescript
+import { taskService } from '@/services/task.service';
+
+const items = await taskService.listMyTasks();
+// items: TaskWithCount[]
+
+for (const { task, completion_count } of items) {
+  console.log(`${task.title}: completed ${completion_count} times`);
+}
+```
+
+---
+
+## Update a task
+
+`PUT /tasks/:taskId`
+
+Partially updates an existing task. All fields are optional — only the fields provided will be updated.
+
+### Path parameters
+
+<ParamField path="taskId" type="number" required>
+  The numeric ID of the task to update.
+</ParamField>
+
+### Request body
+
+<ParamField body="title" type="string">
+  New display name for the task.
+</ParamField>
+
+<ParamField body="description" type="string">
+  New description for the task.
+</ParamField>
+
+<ParamField body="points" type="number">
+  Updated XP point value.
+</ParamField>
+
+<ParamField body="is_daily_routine" type="boolean">
+  Update the daily routine flag.
+</ParamField>
+
+### Response
+
+Returns the updated `Task` object.
+
+### Code example
+
+```typescript
+import { taskService } from '@/services/task.service';
+
+const updated = await taskService.updateTask(taskId, {
+  points: 20,
+  is_daily_routine: false,
+});
+// updated: Task
+```
+
+---
+
+## Delete a task
+
+`DELETE /tasks/:taskId`
+
+Permanently deletes a task. Existing task completion records are unaffected.
+
+### Path parameters
+
+<ParamField path="taskId" type="number" required>
+  The numeric ID of the task to delete.
+</ParamField>
+
+### Response
+
+Returns no body on success.
+
+### Code example
+
+```typescript
+import { taskService } from '@/services/task.service';
+
+await taskService.deleteTask(taskId);
+// resolves void on success
+```

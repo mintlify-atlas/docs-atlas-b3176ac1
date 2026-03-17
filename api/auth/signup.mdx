@@ -1,0 +1,80 @@
+---
+title: "Sign up"
+description: "Create a new user account and receive a JWT token."
+---
+
+`POST /auth/signup`
+
+Creates a new user account. On success, returns a JWT token and the newly created user's information — identical to the login response, so the user is immediately authenticated without a separate login step.
+
+## Request body
+
+<ParamField body="name" type="string" required>
+  The user's full name.
+</ParamField>
+
+<ParamField body="email" type="string" required>
+  The user's email address. Must be unique across all accounts.
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  The user's chosen password.
+</ParamField>
+
+## Response
+
+<ResponseField name="token" type="string" required>
+  JWT token to include in the `Authorization` header of subsequent requests.
+</ResponseField>
+
+<ResponseField name="user" type="object" required>
+  Information about the newly created user.
+  <Expandable title="properties">
+    <ResponseField name="id" type="string" required>
+      Unique identifier for the user.
+    </ResponseField>
+    <ResponseField name="email" type="string" required>
+      The user's email address.
+    </ResponseField>
+    <ResponseField name="name" type="string" required>
+      The user's display name.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Code example
+
+<CodeGroup>
+
+```typescript authService.signup
+import { authService } from '@/services/auth.service';
+import { useAuthStore } from '@/stores/auth.store';
+
+const response = await authService.signup(
+  'Jane Doe',
+  'jane@example.com',
+  'securepassword'
+);
+
+// Persist the token and user data immediately — no separate login needed
+useAuthStore.getState().setAuth(response.token, response.user);
+```
+
+```typescript raw axios
+import api from '@/services/api';
+
+const { data } = await api.post('/auth/signup', {
+  name: 'Jane Doe',
+  email: 'jane@example.com',
+  password: 'securepassword',
+});
+
+// data.token — JWT token
+// data.user  — { id, email, name }
+```
+
+</CodeGroup>
+
+<Tip>
+  The application validates the signup form with **Zod** and **React Hook Form** before calling `authService.signup`. Validation errors (e.g. invalid email format, password too short) are caught client-side and never reach the API. You only need server-side error handling for cases like duplicate email addresses.
+</Tip>

@@ -1,0 +1,181 @@
+---
+title: "Theming"
+description: "How Mais Hábito implements dark and light themes using Styled Components."
+---
+
+Mais Hábito supports dark and light modes through Styled Components' `ThemeProvider`. Theme tokens are defined in `src/styles/theme.ts`, the active theme is controlled by `useThemeStore`, and TypeScript augmentation in `src/types/styled.d.ts` gives every styled component full type safety on theme properties.
+
+## How the theme is applied
+
+`main.tsx` reads `isDark` from `useThemeStore` and selects either `darkTheme` or `lightTheme`. The chosen object is passed to `ThemeProvider`, which makes it available to every styled component in the tree via the `theme` prop.
+
+```typescript
+const Root = () => {
+  const isDark = useThemeStore((s) => s.isDark);
+  const theme = isDark ? darkTheme : lightTheme;
+
+  return (
+    <ThemeProvider theme={theme}>
+      <GlobalStyle />
+      <App />
+    </ThemeProvider>
+  );
+};
+```
+
+Because `useThemeStore` is a Zustand store, calling `toggleTheme()` triggers a re-render of `Root`, swapping the theme object passed to `ThemeProvider`. All styled components beneath it update immediately.
+
+## TypeScript augmentation
+
+`src/types/styled.d.ts` merges the `Theme` type (derived from `darkTheme`) into Styled Components' `DefaultTheme` interface:
+
+```typescript
+import 'styled-components';
+import type { Theme } from '../styles/theme';
+
+declare module 'styled-components' {
+  export interface DefaultTheme extends Theme {}
+}
+```
+
+This means the `theme` object inside any styled component is fully typed — your editor will autocomplete token names and report type errors if you reference a property that doesn't exist.
+
+## Using theme tokens in styled components
+
+Access token values via the `theme` prop interpolation:
+
+```typescript
+import styled from 'styled-components';
+
+const Card = styled.div`
+  background: ${({ theme }) => theme.colors.surface};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  padding: ${({ theme }) => theme.spacing.lg};
+`;
+```
+
+<Tip>
+  Always use theme tokens instead of hardcoded hex values. Components that reference `theme.colors.*` automatically adapt when the user switches between dark and light mode — no conditional logic required.
+</Tip>
+
+## Toggling the theme
+
+The `useThemeStore` hook exposes `isDark` and `toggleTheme`. The `Sidebar` (desktop) and `BottomNav` (mobile) both render a toggle button using this hook:
+
+```typescript
+import { useThemeStore } from '../../store/themeStore';
+
+const { isDark, toggleTheme } = useThemeStore();
+
+// In JSX
+<button onClick={toggleTheme}>
+  {isDark ? <Sun size={18} /> : <Moon size={18} />}
+</button>
+```
+
+The selected theme is persisted to `localStorage` under the key `theme` (`"dark"` or `"light"`), so the preference is restored on the next visit. If no value is stored, the app defaults to dark mode.
+
+## Color tokens
+
+Both themes share the same token names. Only the values differ. The `baseTheme` object (fonts, spacing, border radii, shadows) is identical between both themes.
+
+<Tabs>
+  <Tab title="Dark theme">
+    | Token | Value | Use |
+    |---|---|---|
+    | `colors.primary` | `#06B6D4` | Brand accent, buttons, links |
+    | `colors.primaryDark` | `#0891B2` | Hover state for primary |
+    | `colors.primaryLight` | `#22D3EE` | Light variant of primary |
+    | `colors.secondary` | `#FFE66D` | Highlights, badges |
+    | `colors.background` | `#0D0D0D` | Page background |
+    | `colors.surface` | `#1A1A1A` | Card and panel backgrounds |
+    | `colors.surfaceAlt` | `#242424` | Alternate surface (inputs, rows) |
+    | `colors.textPrimary` | `#EAEAEA` | Main body text |
+    | `colors.textSecondary` | `#9A9AB0` | Muted / secondary text |
+    | `colors.border` | `#2A2A2A` | Dividers and outlines |
+    | `colors.error` | `#FF4444` | Error states |
+    | `colors.success` | `#44BB77` | Success states |
+  </Tab>
+  <Tab title="Light theme">
+    | Token | Value | Use |
+    |---|---|---|
+    | `colors.primary` | `#0891B2` | Brand accent, buttons, links |
+    | `colors.primaryDark` | `#0E7490` | Hover state for primary |
+    | `colors.primaryLight` | `#06B6D4` | Light variant of primary |
+    | `colors.secondary` | `#FFE66D` | Highlights, badges |
+    | `colors.background` | `#FAFAFA` | Page background |
+    | `colors.surface` | `#FFFFFF` | Card and panel backgrounds |
+    | `colors.surfaceAlt` | `#F0F0F0` | Alternate surface (inputs, rows) |
+    | `colors.textPrimary` | `#2D2D2D` | Main body text |
+    | `colors.textSecondary` | `#8A8A8A` | Muted / secondary text |
+    | `colors.border` | `#E8E8E8` | Dividers and outlines |
+    | `colors.error` | `#FF4444` | Error states |
+    | `colors.success` | `#44BB77` | Success states |
+  </Tab>
+</Tabs>
+
+## Shared base tokens
+
+The `baseTheme` object is merged into both themes and never changes between modes:
+
+<AccordionGroup>
+  <Accordion title="Typography">
+    | Token | Value |
+    |---|---|
+    | `fonts.family` | `'Inter', sans-serif` |
+    | `fonts.sizes.xs` | `0.75rem` |
+    | `fonts.sizes.sm` | `0.875rem` |
+    | `fonts.sizes.md` | `1rem` |
+    | `fonts.sizes.lg` | `1.125rem` |
+    | `fonts.sizes.xl` | `1.25rem` |
+    | `fonts.sizes.xxl` | `1.5rem` |
+    | `fonts.sizes.title` | `2rem` |
+    | `fonts.weights.regular` | `400` |
+    | `fonts.weights.medium` | `500` |
+    | `fonts.weights.semibold` | `600` |
+    | `fonts.weights.bold` | `700` |
+  </Accordion>
+  <Accordion title="Spacing">
+    | Token | Value |
+    |---|---|
+    | `spacing.xs` | `4px` |
+    | `spacing.sm` | `8px` |
+    | `spacing.md` | `16px` |
+    | `spacing.lg` | `24px` |
+    | `spacing.xl` | `32px` |
+    | `spacing.xxl` | `48px` |
+  </Accordion>
+  <Accordion title="Border radius">
+    | Token | Value |
+    |---|---|
+    | `borderRadius.sm` | `6px` |
+    | `borderRadius.md` | `12px` |
+    | `borderRadius.lg` | `20px` |
+    | `borderRadius.full` | `999px` |
+  </Accordion>
+  <Accordion title="Shadows">
+    | Token | Value |
+    |---|---|
+    | `shadows.sm` | `0 1px 4px rgba(0,0,0,0.2)` |
+    | `shadows.md` | `0 4px 12px rgba(0,0,0,0.3)` |
+    | `shadows.lg` | `0 8px 24px rgba(0,0,0,0.4)` |
+  </Accordion>
+</AccordionGroup>
+
+## Global styles
+
+`GlobalStyle.ts` uses `createGlobalStyle` from Styled Components to apply base resets that consume theme tokens:
+
+```typescript
+export const GlobalStyle = createGlobalStyle`
+  body {
+    font-family: ${({ theme }) => theme.fonts.family};
+    background-color: ${({ theme }) => theme.colors.background};
+    color: ${({ theme }) => theme.colors.textPrimary};
+  }
+`;
+```
+
+`GlobalStyle` is rendered inside `ThemeProvider` in `main.tsx`, so it has access to the same active theme object as every other styled component.

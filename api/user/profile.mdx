@@ -1,0 +1,156 @@
+---
+title: "User profile"
+description: "Retrieve and update the authenticated user's profile and gamification stats."
+---
+
+The user profile combines identity fields with live gamification statistics: total XP points, current daily streak, and all-time best streak. These values are updated server-side whenever the user completes tasks or challenges.
+
+## TypeScript interfaces
+
+```typescript
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  profile_picture: string | null; // URL or null
+  points: number;          // Total XP accumulated
+  current_streak: number;  // Consecutive days with at least one task completed
+  max_streak: number;      // All-time best streak
+  created_at: string;      // ISO 8601
+  updated_at: string;      // ISO 8601
+}
+
+export interface UpdateProfileData {
+  name?: string;
+  email?: string;
+  profile_picture?: string | null;
+  currentPassword?: string; // Required when changing password
+  newPassword?: string;     // Required when changing password
+}
+```
+
+### Gamification fields
+
+| Field | Type | Description |
+|---|---|---|
+| `points` | `number` | Cumulative XP earned across all task completions. |
+| `current_streak` | `number` | Number of consecutive days on which the user completed at least one task. Resets to 0 if a day is missed. |
+| `max_streak` | `number` | The longest streak the user has ever achieved. Never decreases. |
+
+---
+
+## Get profile
+
+`GET /user/profile`
+
+Returns the full profile for the currently authenticated user.
+
+### Response
+
+<ResponseField name="id" type="string" required>
+  Unique identifier for the user.
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  The user's display name.
+</ResponseField>
+
+<ResponseField name="email" type="string" required>
+  The user's email address.
+</ResponseField>
+
+<ResponseField name="profile_picture" type="string">
+  URL of the user's profile picture, or `null` if not set.
+</ResponseField>
+
+<ResponseField name="points" type="number" required>
+  Total XP points accumulated by the user.
+</ResponseField>
+
+<ResponseField name="current_streak" type="number" required>
+  Number of consecutive days the user has completed at least one task.
+</ResponseField>
+
+<ResponseField name="max_streak" type="number" required>
+  The user's all-time best consecutive day streak.
+</ResponseField>
+
+<ResponseField name="created_at" type="string" required>
+  ISO 8601 timestamp of when the account was created.
+</ResponseField>
+
+<ResponseField name="updated_at" type="string" required>
+  ISO 8601 timestamp of the last profile update.
+</ResponseField>
+
+### Code example
+
+```typescript
+import { userService } from '@/services/user.service';
+
+const profile = await userService.getProfile();
+// profile: UserProfile
+// profile.points        — total XP
+// profile.current_streak — consecutive days
+// profile.max_streak    — all-time best
+```
+
+---
+
+## Update profile
+
+`PUT /user/profile`
+
+Partially updates the authenticated user's profile. All fields are optional — only the fields provided will be updated.
+
+### Request body
+
+<ParamField body="name" type="string">
+  New display name.
+</ParamField>
+
+<ParamField body="email" type="string">
+  New email address.
+</ParamField>
+
+<ParamField body="profile_picture" type="string">
+  URL of the new profile picture. Pass `null` to remove the current picture.
+</ParamField>
+
+<ParamField body="currentPassword" type="string">
+  The user's current password. Required when `newPassword` is provided.
+</ParamField>
+
+<ParamField body="newPassword" type="string">
+  The desired new password. Requires `currentPassword` to also be provided.
+</ParamField>
+
+### Response
+
+Returns the updated `UserProfile` object.
+
+### Code example
+
+<CodeGroup>
+
+```typescript update name and picture
+import { userService } from '@/services/user.service';
+
+const updated = await userService.updateProfile({
+  name: 'Jane Doe',
+  profile_picture: 'https://cdn.example.com/avatars/jane.jpg',
+});
+// updated: UserProfile
+```
+
+```typescript change password
+import { userService } from '@/services/user.service';
+
+const updated = await userService.updateProfile({
+  currentPassword: 'oldpassword',
+  newPassword: 'newpassword',
+});
+// updated: UserProfile
+```
+
+</CodeGroup>

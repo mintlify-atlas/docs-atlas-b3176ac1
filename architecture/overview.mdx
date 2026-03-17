@@ -1,0 +1,158 @@
+---
+title: "Architecture overview"
+description: "How Mais Hábito is structured — pages, services, state, and routing."
+---
+
+Mais Hábito is a single-page application with a clear separation between routing, pages, shared components, data-fetching services, and global state. The sections below describe how each layer fits together.
+
+## Folder structure
+
+<Tree>
+  <Tree.Folder name="src" defaultOpen>
+    <Tree.Folder name="components" defaultOpen>
+      <Tree.File name="ErrorBoundary.tsx" />
+      <Tree.Folder name="layout">
+        <Tree.File name="PrivateLayout.tsx" />
+        <Tree.File name="Sidebar.tsx" />
+        <Tree.File name="BottomNav.tsx" />
+      </Tree.Folder>
+    </Tree.Folder>
+    <Tree.Folder name="pages">
+      <Tree.Folder name="auth" />
+      <Tree.Folder name="home" />
+      <Tree.Folder name="dashboard" />
+      <Tree.Folder name="challenges" />
+      <Tree.Folder name="tasks" />
+      <Tree.Folder name="profile" />
+    </Tree.Folder>
+    <Tree.Folder name="services">
+      <Tree.File name="api.ts" />
+      <Tree.File name="auth.service.ts" />
+      <Tree.File name="challenge.service.ts" />
+      <Tree.File name="task.service.ts" />
+      <Tree.File name="user.service.ts" />
+    </Tree.Folder>
+    <Tree.Folder name="store">
+      <Tree.File name="authStore.ts" />
+      <Tree.File name="themeStore.ts" />
+      <Tree.File name="appCache.ts" />
+    </Tree.Folder>
+    <Tree.Folder name="styles">
+      <Tree.File name="theme.ts" />
+      <Tree.File name="GlobalStyle.ts" />
+    </Tree.Folder>
+    <Tree.Folder name="types" />
+    <Tree.Folder name="routes">
+      <Tree.File name="AppRoutes.tsx" />
+    </Tree.Folder>
+    <Tree.File name="main.tsx" />
+    <Tree.File name="App.tsx" />
+  </Tree.Folder>
+</Tree>
+
+## Layer responsibilities
+
+<Columns cols={2}>
+  <Card title="components/" icon="puzzle-piece">
+    Shared UI elements reused across pages. Includes the `PrivateLayout`, collapsible `Sidebar`, and `BottomNav` for mobile.
+  </Card>
+  <Card title="pages/" icon="file">
+    Route-level screen components. Each page owns its modals and sub-components. Pages call service functions — they do not use Axios directly.
+  </Card>
+  <Card title="services/" icon="server">
+    REST communication layer. Each `*.service.ts` file wraps a specific API resource using the shared Axios instance from `api.ts`.
+  </Card>
+  <Card title="store/" icon="database">
+    Zustand hooks for global state: authentication (`authStore`), dark/light theme (`themeStore`), and in-memory cache (`appCache`).
+  </Card>
+  <Card title="styles/" icon="palette">
+    `theme.ts` exports `darkTheme` and `lightTheme` token objects. `GlobalStyle.ts` applies base resets and body styles via Styled Components.
+  </Card>
+  <Card title="types/" icon="code">
+    TypeScript DTOs and interface declarations, including `styled.d.ts` which augments `DefaultTheme` with the Styled Components type system.
+  </Card>
+</Columns>
+
+## Component design
+
+Mais Hábito follows an atomic-ish design approach:
+
+- **Pages** are the primary unit of composition. A page renders its own heading, modals, and feature-specific sub-components.
+- **Shared components** (`components/`) only contain elements used across two or more pages — currently the layout shell.
+- **Styles** live alongside their component (e.g., `Sidebar.tsx` + `Sidebar.styles.ts`) rather than in a global CSS file.
+
+This keeps feature logic co-located and avoids importing shared state into generic components.
+
+## Service layer
+
+Pages never import Axios directly. All network calls go through a service file:
+
+```typescript
+// Correct — call a service function
+import { getTasks } from '../../services/task.service';
+
+const data = await getTasks();
+
+// Incorrect — do not call api directly from a page
+import api from '../../services/api';
+const data = await api.get('/tasks');
+```
+
+The shared `api.ts` Axios instance adds the `Authorization: Bearer <token>` header automatically on every request and handles 401 responses by clearing credentials and redirecting to `/`.
+
+## Route guard system
+
+Two thin wrapper components in `AppRoutes.tsx` protect routes based on authentication state from `useAuthStore`.
+
+| Component | Behaviour |
+|---|---|
+| `PrivateRoute` | Renders its children if authenticated; redirects to `/` otherwise |
+| `PublicRoute` | Renders its children if not authenticated; redirects to `/dashboard` otherwise |
+
+All authenticated pages are nested under a single `PrivateRoute` that also renders `PrivateLayout` (sidebar + bottom nav). Public pages (`/`, `/login`, `/signup`) are each individually wrapped in `PublicRoute`.
+
+## Available routes
+
+| Path | Guard | Page |
+|---|---|---|
+| `/` | `PublicRoute` | `HomePage` |
+| `/login` | `PublicRoute` | `LoginPage` |
+| `/signup` | `PublicRoute` | `SignupPage` |
+| `/dashboard` | `PrivateRoute` | `DashboardPage` |
+| `/challenges` | `PrivateRoute` | `ChallengesPage` |
+| `/tasks` | `PrivateRoute` | `TasksPage` |
+| `/profile` | `PrivateRoute` | `ProfilePage` |
+
+## Data flow
+
+The following diagram shows how data moves from a user interaction to a re-render:
+
+```mermaid
+flowchart LR
+    A[User action] --> B[Page component]
+    B --> C[Service function]
+    C --> D[Axios — api.ts]
+    D --> E[REST API]
+    E --> D
+    D --> C
+    C --> F[Update Zustand store or cache]
+    F --> G[React re-render]
+```
+
+<Steps>
+  <Step title="User action">
+    The user clicks a button or submits a form inside a page component.
+  </Step>
+  <Step title="Service call">
+    The page calls a service function (e.g., `completeTask(id)`). The service function uses the shared Axios instance from `api.ts`.
+  </Step>
+  <Step title="HTTP request">
+    Axios sends the request with the JWT `Authorization` header injected by the request interceptor.
+  </Step>
+  <Step title="Response handling">
+    On success, the service returns the data to the page. The page calls the appropriate Zustand setter (e.g., `setTasks`, `setDashboard`) to update cached state.
+  </Step>
+  <Step title="Re-render">
+    Components subscribed to the updated store slice re-render with the new data.
+  </Step>
+</Steps>

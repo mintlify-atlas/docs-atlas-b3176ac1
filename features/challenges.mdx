@@ -1,0 +1,136 @@
+---
+title: "Challenges"
+description: "Create challenge templates and accept multi-day tracks to build long-term habits."
+---
+
+Challenges are multi-day commitments you make to yourself. You first create a **challenge template** (a reusable blueprint), then **accept** it to start an active run. While active you can log daily progress notes, and when you're done you either complete or abandon it.
+
+## Concepts
+
+### Challenge template
+
+A template is the blueprint for a challenge. It is not tied to any specific run — multiple users could accept the same template.
+
+```typescript
+export interface ChallengeTemplate {
+  id: number;
+  title: string;
+  description: string;
+  duration_days: number;
+  created_at: string;
+  updated_at: string;
+}
+```
+
+### User challenge
+
+A user challenge is created when you accept a template. It tracks your personal run: status, start date, completion date, and your diary notes.
+
+```typescript
+export interface UserChallenge {
+  id: number;
+  user_id: string;
+  template_id: number;
+  status: 'ACTIVE' | 'COMPLETED' | 'ABANDONED';
+  start_date: string;
+  completed_at: string | null;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+  template?: ChallengeTemplate;
+}
+```
+
+### Status lifecycle
+
+A challenge always starts as `ACTIVE` and transitions to one of two terminal states:
+
+```
+ACTIVE → COMPLETED
+ACTIVE → ABANDONED
+```
+
+Challenges in `COMPLETED` or `ABANDONED` status appear in your history but can no longer be modified.
+
+## Browsing the catalog
+
+The Challenges page lists the available templates in a dropdown when you open the "Novo Desafio" modal. Each entry shows the template title and its duration in days. The catalog holds up to 10 templates at a time.
+
+## Creating a challenge template
+
+<Steps>
+  <Step title="Open the modal">
+    On the Challenges page, click **Novo Desafio**. The modal opens on the "Aceitar novo Desafio" view.
+  </Step>
+  <Step title="Switch to create view">
+    Click **Criar Desafio** at the bottom of the modal.
+  </Step>
+  <Step title="Fill in the fields">
+    | Field | Requirement |
+    |---|---|
+    | **Título** | Minimum 3 characters |
+    | **Descrição** | Minimum 10 characters |
+    | **Duração (Dias)** | Between 1 and 365 |
+  </Step>
+  <Step title="Save">
+    Click **Salvar novo Desafio**. The new template appears in the catalog immediately.
+  </Step>
+</Steps>
+
+<Warning>
+  The catalog has a hard limit of 10 templates. If you have reached the limit, the create button is replaced by a notice and a **Excluir um desafio** option to remove an existing template before creating a new one.
+</Warning>
+
+## Accepting a challenge
+
+<Steps>
+  <Step title="Open the modal">
+    Click **Novo Desafio** on the Challenges page.
+  </Step>
+  <Step title="Select a template">
+    Choose a template from the **Modelo do Desafio** dropdown. The dropdown shows each template's title and duration.
+  </Step>
+  <Step title="Accept">
+    Click **Aceitar Desafio**. Your active challenge is set immediately and the page reloads to show the active challenge card.
+  </Step>
+</Steps>
+
+<Warning>
+  Only one challenge can be active at a time. If you already have an `ACTIVE` challenge, the API will reject a new accept request. You must complete or abandon your current challenge before starting a new one.
+</Warning>
+
+## Managing your active challenge
+
+When a challenge is active, the **Desafio Ativo** section on the Challenges page shows a full management card with:
+
+- **Title and description** from the template
+- **Start date** and a day counter (e.g., "Dia 4 de 30")
+- **Challenge diary** — a log of all your progress notes
+- **Actions** — complete or abandon buttons
+
+### Logging progress (diary)
+
+The challenge diary (`Diário do Desafio`) lets you record a text note each day to document your progress.
+
+<Steps>
+  <Step title="Write a note">
+    Type your progress update in the text area (max 500 characters).
+  </Step>
+  <Step title="Save the entry">
+    Click **Registrar Progresso**. The entry is timestamped and prepended to the diary log.
+  </Step>
+</Steps>
+
+Notes are stored as a JSON array on the `notes` field of your `UserChallenge` record. Previous notes are displayed in reverse-chronological order (newest first) above the input.
+
+### Completing a challenge
+
+Click **Completar Desafio** to mark the challenge as `COMPLETED`. This action is permanent — the challenge moves to your history and cannot be resumed.
+
+### Abandoning a challenge
+
+Click **Abandonar** to open a confirmation modal. Confirm to set the status to `ABANDONED`. Like completion, this is irreversible — you cannot resume progress from an abandoned challenge.
+
+## Challenge history
+
+The **Histórico** section lists all your past challenges with a `COMPLETED` or `ABANDONED` status. If you have no history yet, an empty state is shown.
